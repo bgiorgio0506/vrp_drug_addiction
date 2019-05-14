@@ -19,7 +19,7 @@ vRPclient = Tunnel.getInterface("vRP","vRP_dipendenza")
 print("\n****vRP Drug addiction is Ready (coded by Giorgio Bella)****")
 print("****vRP drugs addiction is Ready****\n")
 -- MySQL queries
-MySQL.createCommand("vRP/create_dipendenza","INSERT INTO vrp_user_dipendenza(user_id, dipendente, lsd_count_taken) VALUES(@user_id, @dipendente, @lsd_taken_count)")
+MySQL.createCommand("vRP/create_dipendenza","INSERT IGNORE INTO vrp_user_dipendenza(user_id, dipendente, lsd_count_taken) VALUES(@user_id, @dipendente, @lsd_taken_count)")
 MySQL.createCommand("vRP/check_dipendente","SELECT dipendente FROM  vrp_user_dipendenza WHERE user_id =@users_id ")
 MySQL.createCommand("vRP/check_all", "SELECT dipendente, lsd_count_taken, count_med_taken, med_last_taken FROM vrp_user_dipendenza WHERE user_di =@user_id")
 MySQL.createCommand("vRP/update_dipendente","UPDATE vrp_user_dipendenza SET dipendente =@dipendente, lsd_count_taken =@lsd_count_taken WHERE user_id=@user_id ")
@@ -58,6 +58,15 @@ function UpdateDipendenza(user_id,dipendente,lsd_taken_count)
 	print('[vRP Drug Addiction]User '..user_id..' has taken lsd for '.. lsd_taken_count..'')
 	TriggerClientEvent("lsd:check")
 end
+
+ function CreateDipendenza(user_id,dipendente,lsd_taken_count)
+ 	MySQL.query("vRP/create_dipenza",{user_id = user_id, dipendente = dipendente, lsd_count_taken = lsd_taken_count},function(rows,effected)
+		if	#rows > 0 then
+			print('[vRP Drug Addiction]User '..user_id..' has taken lsd for the first time')
+			 TriggerClientEvent("lsd:check")
+		end
+	end)
+ end
 --END FUNCTIONS
 
 -- Called when the effect of the drug is vanished and you are starting to get addidcted
@@ -73,12 +82,7 @@ AddEventHandler('lsd:taken', function()
 		if #rows < 0 then
 			local lsd_taken_count = 1
 			local dipendente = true
-			MySQL.query("vRP/create_dipenza",{user_id = user_id, dipendente = dipendente, lsd_count_taken = lsd_count_taken},function(rows,effected)
-				if	#rows > 0 then
-					print('[vRP Drug Addiction]User '..user_id..' has taken lsd for the first time')
-					 TriggerClientEvent("lsd:check")
-				end
-			end)
+			CreateDipendenza(user_id,dipendente,lsd_taken_count)
 		else
 			for k,v in pairs(rows) do
 				if v.dipendente == false then
@@ -221,7 +225,9 @@ end)
 AddEventHandler("vRP:playerSpawn",function(user_id,source)
 	--Call the function
 	print(user_id)
+	local player = vRP.getUserSource({source})
 	local dipendente = CheckDipendenza(source)
+	TriggerClientEvent("lsd:getresponse", user_id, palyer, dipendente)
 	if dipendente == true then
 		vRP.addUserGroup(user_id, "Tossico")
 	elseif dipendente == false then

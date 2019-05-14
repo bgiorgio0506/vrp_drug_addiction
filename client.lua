@@ -1,9 +1,11 @@
 -- Set proxy Interface
 vRP = Proxy.getInterface("vRP")
+
 -- gloabal vars
 is_addicted = ''
 player = ''
 user_id = '' 
+---end gloabal vars 
 
 function SetEntityAddicted()
 	RequestAnimSet("move_m@injured")
@@ -22,10 +24,9 @@ AddEventHandler("lsd:setnotaddicted",function(player)
 	vRPclient.notify(player,{"Mi sto sentendo meglio sto riprendendo le mie capacità motorie"})
 end)
 
---Sever event to called only when user take drugs or spawn
+--Sever event to called only when user take drugs
 RegisterNetEvent('lsd:check')
 AddEventHandler('lsd:check', function (user_id,player)
-	-- might need a loop here or a sort of time out function()
 	TriggerServerEvent('lsd:servercheck', user_id, player)
 	RegisterNetEvent('lsd:getresponse') -- Getting response from server
 	AddEventHandler('lsd:getresponse',function(user_id, player , dipendente)
@@ -52,7 +53,7 @@ Citizen.CreateThread(function()
 		Citizen.Wait(1)
 		if is_addicted == true and player ~= nil then
 			--Make life difficult 
-			Citizen.Wait(1000)
+			Citizen.Wait(10000)
 				StartScreenEffect("DrugsDrivingIn",30000)
 			--Animation stop after a player complete is medical plan 
 			SetEntityAddicted()
